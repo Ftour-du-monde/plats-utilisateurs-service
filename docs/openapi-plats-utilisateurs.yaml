@@ -1,0 +1,336 @@
+openapi: 3.0.3
+info:
+  title: API Plats & Utilisateurs
+  version: 1.0.0
+  description: API REST du microservice Plats & Utilisateurs.
+servers:
+  - url: http://localhost:8080/plats-utilisateurs-service/api
+    description: Serveur local Jakarta EE
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Verifier la disponibilite du service
+      responses:
+        '200':
+          description: Service disponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /plats:
+    get:
+      tags: [Plats]
+      summary: Lister les plats
+      responses:
+        '200':
+          description: Liste des plats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlatResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Plats]
+      summary: Creer un plat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatRequest'
+      responses:
+        '201':
+          description: Plat cree
+          headers:
+            Location:
+              description: URL du plat cree
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /plats/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Plats]
+      summary: Recuperer un plat par id
+      responses:
+        '200':
+          description: Plat trouve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Plats]
+      summary: Modifier un plat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatRequest'
+      responses:
+        '200':
+          description: Plat modifie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Plats]
+      summary: Supprimer un plat
+      responses:
+        '204':
+          description: Plat supprime
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /utilisateurs:
+    get:
+      tags: [Utilisateurs]
+      summary: Lister les utilisateurs
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UtilisateurResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Utilisateurs]
+      summary: Creer un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtilisateurRequest'
+      responses:
+        '201':
+          description: Utilisateur cree
+          headers:
+            Location:
+              description: URL de l'utilisateur cree
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilisateurResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /utilisateurs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Utilisateurs]
+      summary: Recuperer un utilisateur par id
+      responses:
+        '200':
+          description: Utilisateur trouve
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilisateurResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      tags: [Utilisateurs]
+      summary: Modifier un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtilisateurRequest'
+      responses:
+        '200':
+          description: Utilisateur modifie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilisateurResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Utilisateurs]
+      summary: Supprimer un utilisateur
+      responses:
+        '204':
+          description: Utilisateur supprime
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+
+  responses:
+    BadRequest:
+      description: Requete invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    Conflict:
+      description: Conflit metier
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    InternalError:
+      description: Erreur interne
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: UP
+        timestamp:
+          type: string
+          format: date-time
+      required: [status, timestamp]
+
+    PlatRequest:
+      type: object
+      properties:
+        nom:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        prix:
+          type: number
+          format: double
+      required: [nom, prix]
+
+    PlatResponse:
+      allOf:
+        - $ref: '#/components/schemas/PlatRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+          required: [id]
+
+    UtilisateurRequest:
+      type: object
+      properties:
+        nom:
+          type: string
+          maxLength: 120
+        prenom:
+          type: string
+          maxLength: 120
+        email:
+          type: string
+          maxLength: 255
+        adresse:
+          type: string
+          maxLength: 255
+          nullable: true
+      required: [nom, prenom, email]
+
+    UtilisateurResponse:
+      allOf:
+        - $ref: '#/components/schemas/UtilisateurRequest'
+        - type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+          required: [id]
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Bad Request
+        message:
+          type: string
+          example: Le champ 'nom' est obligatoire.
+        path:
+          type: string
+          example: /api/plats
+        timestamp:
+          type: string
+          format: date-time
+      required: [status, error, message, timestamp]

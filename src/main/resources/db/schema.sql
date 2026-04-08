@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS utilisateurs (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    nom VARCHAR(120) NOT NULL,
+    prenom VARCHAR(120) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    adresse VARCHAR(255) NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_utilisateurs_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS plats (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    nom VARCHAR(150) NOT NULL,
+    description VARCHAR(500) NULL,
+    prix DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

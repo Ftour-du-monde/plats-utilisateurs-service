@@ -1,0 +1,178 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+package "Framework & Drivers" {
+  class RestApplication {
+    +"@ApplicationPath('/api')"
+  }
+
+  class DataSourceProducer {
+    +dataSource(): DataSource
+  }
+}
+
+package "Adapters In - REST" {
+  class PlatController {
+    +getAll(): Response
+    +getById(id: Long): Response
+    +create(request: PlatRequest): Response
+    +update(id: Long, request: PlatRequest): Response
+    +delete(id: Long): Response
+  }
+
+  class UtilisateurController {
+    +getAll(): Response
+    +getById(id: Long): Response
+    +create(request: UtilisateurRequest): Response
+    +update(id: Long, request: UtilisateurRequest): Response
+    +delete(id: Long): Response
+  }
+
+  class HealthController {
+    +health(): Response
+  }
+
+  class CorsFilter {
+    +filter(request, response)
+  }
+
+  class ApiResponses {
+    +badRequest(message, uriInfo): Response
+    +notFound(message, uriInfo): Response
+    +conflict(message, uriInfo): Response
+    +internalServerError(uriInfo): Response
+  }
+
+  class PlatRequest
+  class PlatResponse
+  class UtilisateurRequest
+  class UtilisateurResponse
+  class HealthResponse
+  class ApiErrorResponse
+}
+
+package "Application - Ports In" {
+  interface ConsulterPlatsUseCase {
+    +tousLesPlats(): List<Plat>
+    +platParId(id: Long): Optional<Plat>
+  }
+
+  interface GererPlatsUseCase {
+    +creer(nom, description, prix): Plat
+    +modifier(id, nom, description, prix): Optional<Plat>
+    +supprimer(id: Long): boolean
+  }
+
+  interface ConsulterUtilisateursUseCase {
+    +tousLesUtilisateurs(): List<Utilisateur>
+    +utilisateurParId(id: Long): Optional<Utilisateur>
+  }
+
+  interface GererUtilisateursUseCase {
+    +creer(nom, prenom, email, adresse): Utilisateur
+    +modifier(id, nom, prenom, email, adresse): Optional<Utilisateur>
+    +supprimer(id: Long): boolean
+  }
+}
+
+package "Application - Use Cases" {
+  class ConsulterPlatsInteractor
+  class GererPlatsInteractor
+  class ConsulterUtilisateursInteractor
+  class GererUtilisateursInteractor
+}
+
+package "Application - Ports Out" {
+  interface PlatGateway {
+    +findAll(): List<Plat>
+    +findById(id: Long): Optional<Plat>
+    +save(plat: Plat): Plat
+    +update(id: Long, plat: Plat): Optional<Plat>
+    +deleteById(id: Long): boolean
+  }
+
+  interface UtilisateurGateway {
+    +findAll(): List<Utilisateur>
+    +findById(id: Long): Optional<Utilisateur>
+    +save(utilisateur: Utilisateur): Utilisateur
+    +update(id: Long, utilisateur: Utilisateur): Optional<Utilisateur>
+    +deleteById(id: Long): boolean
+  }
+}
+
+package "Adapters Out - MySQL" {
+  class MySqlPlatGateway
+  class MySqlUtilisateurGateway
+}
+
+package "Domain" {
+  class Plat {
+    -id: Long
+    -nom: String
+    -description: String
+    -prix: BigDecimal
+  }
+
+  class Utilisateur {
+    -id: Long
+    -nom: String
+    -prenom: String
+    -email: String
+    -adresse: String
+  }
+
+  class DuplicateEmailException
+}
+
+ConsulterPlatsInteractor ..|> ConsulterPlatsUseCase
+GererPlatsInteractor ..|> GererPlatsUseCase
+ConsulterUtilisateursInteractor ..|> ConsulterUtilisateursUseCase
+GererUtilisateursInteractor ..|> GererUtilisateursUseCase
+
+MySqlPlatGateway ..|> PlatGateway
+MySqlUtilisateurGateway ..|> UtilisateurGateway
+
+PlatController --> ConsulterPlatsUseCase
+PlatController --> GererPlatsUseCase
+UtilisateurController --> ConsulterUtilisateursUseCase
+UtilisateurController --> GererUtilisateursUseCase
+
+ConsulterPlatsInteractor --> PlatGateway
+GererPlatsInteractor --> PlatGateway
+ConsulterUtilisateursInteractor --> UtilisateurGateway
+GererUtilisateursInteractor --> UtilisateurGateway
+
+ConsulterPlatsUseCase --> Plat
+GererPlatsUseCase --> Plat
+ConsulterUtilisateursUseCase --> Utilisateur
+GererUtilisateursUseCase --> Utilisateur
+
+PlatGateway --> Plat
+UtilisateurGateway --> Utilisateur
+
+MySqlPlatGateway --> DataSourceProducer
+MySqlUtilisateurGateway --> DataSourceProducer
+MySqlUtilisateurGateway --> DuplicateEmailException
+
+PlatController --> PlatRequest
+PlatController --> PlatResponse
+UtilisateurController --> UtilisateurRequest
+UtilisateurController --> UtilisateurResponse
+HealthController --> HealthResponse
+PlatController --> ApiResponses
+UtilisateurController --> ApiResponses
+ApiResponses --> ApiErrorResponse
+
+RestApplication --> PlatController
+RestApplication --> UtilisateurController
+RestApplication --> HealthController
+
+note bottom
+  Regle Clean Architecture:
+  les dependances pointent vers l'interieur
+  (adapters/framework -> application -> domain)
+end note
+
+@enduml
