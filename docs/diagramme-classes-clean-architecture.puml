@@ -3,18 +3,32 @@ skinparam packageStyle rectangle
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
 
+skinparam class {
+  BackgroundColor<<Entity>> #FFF6D6
+  BackgroundColor<<UseCase>> #FCE4EC
+  BackgroundColor<<Interactor>> #FDECEC
+  BackgroundColor<<Controller>> #E8F5E9
+  BackgroundColor<<DTO>> #E3F2FD
+  BackgroundColor<<GatewayPort>> #F3E5F5
+  BackgroundColor<<GatewayAdapter>> #E1F5FE
+  BackgroundColor<<Producer>> #ECEFF1
+  BackgroundColor<<Bootstrap>> #ECEFF1
+  BackgroundColor<<Utility>> #F5F5F5
+  BorderColor #455A64
+}
+
 package "Framework & Drivers" {
-  class RestApplication {
+  class RestApplication <<Bootstrap>> {
     +"@ApplicationPath('/api')"
   }
 
-  class DataSourceProducer {
+  class DataSourceProducer <<Producer>> {
     +dataSource(): DataSource
   }
 }
 
 package "Adapters In - REST" {
-  class PlatController {
+  class PlatController <<Controller>> {
     +getAll(): Response
     +getById(id: Long): Response
     +create(request: PlatRequest): Response
@@ -22,7 +36,7 @@ package "Adapters In - REST" {
     +delete(id: Long): Response
   }
 
-  class UtilisateurController {
+  class UtilisateurController <<Controller>> {
     +getAll(): Response
     +getById(id: Long): Response
     +create(request: UtilisateurRequest): Response
@@ -30,47 +44,48 @@ package "Adapters In - REST" {
     +delete(id: Long): Response
   }
 
-  class HealthController {
+  class HealthController <<Controller>> {
     +health(): Response
   }
 
-  class CorsFilter {
-    +filter(request, response)
+  class CorsFilter <<Controller>> {
+    +filter(requestContext: ContainerRequestContext): void
+    +filter(requestContext: ContainerRequestContext, responseContext: ContainerResponseContext): void
   }
 
-  class ApiResponses {
-    +badRequest(message, uriInfo): Response
-    +notFound(message, uriInfo): Response
-    +conflict(message, uriInfo): Response
-    +internalServerError(uriInfo): Response
+  class ApiResponses <<Utility>> {
+    {static} +badRequest(message, uriInfo): Response
+    {static} +notFound(message, uriInfo): Response
+    {static} +conflict(message, uriInfo): Response
+    {static} +internalServerError(uriInfo): Response
   }
 
-  class PlatRequest
-  class PlatResponse
-  class UtilisateurRequest
-  class UtilisateurResponse
-  class HealthResponse
-  class ApiErrorResponse
+  class PlatRequest <<DTO>>
+  class PlatResponse <<DTO>>
+  class UtilisateurRequest <<DTO>>
+  class UtilisateurResponse <<DTO>>
+  class HealthResponse <<DTO>>
+  class ApiErrorResponse <<DTO>>
 }
 
 package "Application - Ports In" {
-  interface ConsulterPlatsUseCase {
+  interface ConsulterPlatsUseCase <<UseCase>> {
     +tousLesPlats(): List<Plat>
     +platParId(id: Long): Optional<Plat>
   }
 
-  interface GererPlatsUseCase {
+  interface GererPlatsUseCase <<UseCase>> {
     +creer(nom, description, prix): Plat
     +modifier(id, nom, description, prix): Optional<Plat>
     +supprimer(id: Long): boolean
   }
 
-  interface ConsulterUtilisateursUseCase {
+  interface ConsulterUtilisateursUseCase <<UseCase>> {
     +tousLesUtilisateurs(): List<Utilisateur>
     +utilisateurParId(id: Long): Optional<Utilisateur>
   }
 
-  interface GererUtilisateursUseCase {
+  interface GererUtilisateursUseCase <<UseCase>> {
     +creer(nom, prenom, email, adresse): Utilisateur
     +modifier(id, nom, prenom, email, adresse): Optional<Utilisateur>
     +supprimer(id: Long): boolean
@@ -78,14 +93,31 @@ package "Application - Ports In" {
 }
 
 package "Application - Use Cases" {
-  class ConsulterPlatsInteractor
-  class GererPlatsInteractor
-  class ConsulterUtilisateursInteractor
-  class GererUtilisateursInteractor
+  class ConsulterPlatsInteractor <<Interactor>> {
+    +tousLesPlats(): List<Plat>
+    +platParId(id: Long): Optional<Plat>
+  }
+
+  class GererPlatsInteractor <<Interactor>> {
+    +creer(nom, description, prix): Plat
+    +modifier(id, nom, description, prix): Optional<Plat>
+    +supprimer(id: Long): boolean
+  }
+
+  class ConsulterUtilisateursInteractor <<Interactor>> {
+    +tousLesUtilisateurs(): List<Utilisateur>
+    +utilisateurParId(id: Long): Optional<Utilisateur>
+  }
+
+  class GererUtilisateursInteractor <<Interactor>> {
+    +creer(nom, prenom, email, adresse): Utilisateur
+    +modifier(id, nom, prenom, email, adresse): Optional<Utilisateur>
+    +supprimer(id: Long): boolean
+  }
 }
 
 package "Application - Ports Out" {
-  interface PlatGateway {
+  interface PlatGateway <<GatewayPort>> {
     +findAll(): List<Plat>
     +findById(id: Long): Optional<Plat>
     +save(plat: Plat): Plat
@@ -93,7 +125,7 @@ package "Application - Ports Out" {
     +deleteById(id: Long): boolean
   }
 
-  interface UtilisateurGateway {
+  interface UtilisateurGateway <<GatewayPort>> {
     +findAll(): List<Utilisateur>
     +findById(id: Long): Optional<Utilisateur>
     +save(utilisateur: Utilisateur): Utilisateur
@@ -103,19 +135,32 @@ package "Application - Ports Out" {
 }
 
 package "Adapters Out - MySQL" {
-  class MySqlPlatGateway
-  class MySqlUtilisateurGateway
+  class MySqlPlatGateway <<GatewayAdapter>> {
+    +findAll(): List<Plat>
+    +findById(id: Long): Optional<Plat>
+    +save(plat: Plat): Plat
+    +update(id: Long, plat: Plat): Optional<Plat>
+    +deleteById(id: Long): boolean
+  }
+
+  class MySqlUtilisateurGateway <<GatewayAdapter>> {
+    +findAll(): List<Utilisateur>
+    +findById(id: Long): Optional<Utilisateur>
+    +save(utilisateur: Utilisateur): Utilisateur
+    +update(id: Long, utilisateur: Utilisateur): Optional<Utilisateur>
+    +deleteById(id: Long): boolean
+  }
 }
 
 package "Domain" {
-  class Plat {
+  class Plat <<Entity>> {
     -id: Long
     -nom: String
     -description: String
     -prix: BigDecimal
   }
 
-  class Utilisateur {
+  class Utilisateur <<Entity>> {
     -id: Long
     -nom: String
     -prenom: String
@@ -123,8 +168,12 @@ package "Domain" {
     -adresse: String
   }
 
-  class DuplicateEmailException
+  class DuplicateEmailException <<Entity>> {
+    +DuplicateEmailException(message: String)
+  }
 }
+
+class RuntimeException
 
 ConsulterPlatsInteractor ..|> ConsulterPlatsUseCase
 GererPlatsInteractor ..|> GererPlatsUseCase
@@ -134,40 +183,71 @@ GererUtilisateursInteractor ..|> GererUtilisateursUseCase
 MySqlPlatGateway ..|> PlatGateway
 MySqlUtilisateurGateway ..|> UtilisateurGateway
 
-PlatController --> ConsulterPlatsUseCase
-PlatController --> GererPlatsUseCase
-UtilisateurController --> ConsulterUtilisateursUseCase
-UtilisateurController --> GererUtilisateursUseCase
+PlatController ..> ConsulterPlatsUseCase
+PlatController ..> GererPlatsUseCase
+UtilisateurController ..> ConsulterUtilisateursUseCase
+UtilisateurController ..> GererUtilisateursUseCase
 
-ConsulterPlatsInteractor --> PlatGateway
-GererPlatsInteractor --> PlatGateway
-ConsulterUtilisateursInteractor --> UtilisateurGateway
-GererUtilisateursInteractor --> UtilisateurGateway
+ConsulterPlatsInteractor ..> PlatGateway : depends on
+GererPlatsInteractor ..> PlatGateway : depends on
+ConsulterUtilisateursInteractor ..> UtilisateurGateway : depends on
+GererUtilisateursInteractor ..> UtilisateurGateway : depends on
 
-ConsulterPlatsUseCase --> Plat
-GererPlatsUseCase --> Plat
-ConsulterUtilisateursUseCase --> Utilisateur
-GererUtilisateursUseCase --> Utilisateur
+ConsulterPlatsUseCase ..> Plat
+GererPlatsUseCase ..> Plat
+ConsulterUtilisateursUseCase ..> Utilisateur
+GererUtilisateursUseCase ..> Utilisateur
 
-PlatGateway --> Plat
-UtilisateurGateway --> Utilisateur
+PlatGateway ..> Plat
+UtilisateurGateway ..> Utilisateur
 
-MySqlPlatGateway --> DataSourceProducer
-MySqlUtilisateurGateway --> DataSourceProducer
-MySqlUtilisateurGateway --> DuplicateEmailException
+MySqlPlatGateway ..> DataSourceProducer : uses DataSource
+MySqlUtilisateurGateway ..> DataSourceProducer : uses DataSource
+MySqlUtilisateurGateway ..> DuplicateEmailException : throws on unique email
+DuplicateEmailException --|> RuntimeException
 
-PlatController --> PlatRequest
-PlatController --> PlatResponse
-UtilisateurController --> UtilisateurRequest
-UtilisateurController --> UtilisateurResponse
-HealthController --> HealthResponse
-PlatController --> ApiResponses
-UtilisateurController --> ApiResponses
-ApiResponses --> ApiErrorResponse
+PlatController ..> PlatRequest
+PlatController ..> PlatResponse
+UtilisateurController ..> UtilisateurRequest
+UtilisateurController ..> UtilisateurResponse
+HealthController ..> HealthResponse
+PlatController ..> ApiResponses
+UtilisateurController ..> ApiResponses
+ApiResponses ..> ApiErrorResponse
 
-RestApplication --> PlatController
-RestApplication --> UtilisateurController
-RestApplication --> HealthController
+RestApplication ..> PlatController
+RestApplication ..> UtilisateurController
+RestApplication ..> HealthController
+RestApplication ..> CorsFilter
+
+note right of GererPlatsInteractor
+Regles metier Plats:
+- id > 0 pour update/delete
+- nom obligatoire, max 150
+- description optionnelle, max 500
+- prix > 0 et max 2 decimales
+end note
+
+note right of GererUtilisateursInteractor
+Regles metier Utilisateurs:
+- id > 0 pour update/delete
+- nom obligatoire, max 120
+- prenom obligatoire, max 120
+- email valide, normalise, unique, max 255
+- adresse optionnelle, max 255
+end note
+
+legend right
+  <<Bootstrap>> point d'entree JAX-RS
+  <<Controller>> adapter entrant REST
+  <<UseCase>> port d'entree application
+  <<Interactor>> implementation de cas d'usage
+  <<GatewayPort>> port de sortie application
+  <<GatewayAdapter>> adapter sortant MySQL
+  <<Entity>> coeur de domaine
+  <<DTO>> objet de transport API
+  <<Utility>> helper statique API
+endlegend
 
 note bottom
   Regle Clean Architecture:
